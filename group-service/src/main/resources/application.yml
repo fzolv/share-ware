@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: shareware-hull
+    index: ${random.uuid}
+  jmx:
+    enabled: false
+
+  datasource:
+    url: jdbc:h2:file:./persistence/shareware;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: pa
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  jpa:
+    database: H2
+    show-sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8080
+  context-path: /shareware
+logging:
+  file:
+    name: /Users/faizm/workshop/share-ware/logs/shareware.log

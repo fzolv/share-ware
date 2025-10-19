@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: shareware-iam-service
+    index: ${random.uuid}
+  jmx:
+    enabled: false
+
+server:
+  port: 8080
+  context-path: /auth
+logging:
+  file:
+    name: /Users/faizm/workshop/share-ware/logs/iam-service.log

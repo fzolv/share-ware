@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: shareware-user-service
+    index: ${random.uuid}
+  jmx:
+    enabled: false
+
+  datasource:
+    url: jdbc:h2:mem:sw_db
+    driverClassName: org.h2.Driver
+    username: sa
+    password: pa
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  jpa:
+    database: H2
+    show-sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8081
+  context-path: /conduit
+logging:
+  file:
+    name: /Users/faizm/workshop/share-ware/logs/user-service.log

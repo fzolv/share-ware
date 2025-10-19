@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: shareware-group-service
+    index: ${random.uuid}
+  jmx:
+    enabled: false
+
+  datasource:
+    url: jdbc:h2:mem:sw_db
+    driverClassName: org.h2.Driver
+    username: sa
+    password: pa
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  jpa:
+    database: H2
+    show-sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8084
+  context-path: /auditor
+logging:
+  file:
+    name: /Users/faizm/workshop/share-ware/logs/balance-service.log
