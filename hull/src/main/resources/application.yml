@@ -33,8 +33,8 @@ spring:
       client:
         registration:
           google:
-            client-id:
-            client-secret:
+            client-id: #add-google-client-id-here
+            client-secret: #add-secret here
             scope:
               - openid
               - profile
@@ -63,7 +63,7 @@ user-service:
 
 bootstrap:
   admin:
-    emails: [ "maldarfaiz17@gmail.com" ]
+    emails: [ "maldarfaiz17@gmail.com" ]  # Add admin email here for auto loading
 
 shareware:
   locks:
