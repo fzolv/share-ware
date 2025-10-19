@@ -55,6 +55,17 @@ public class SettlementServiceImpl implements SettlementService {
             UserEntity fromUser = userRepository.findById(fromUid).orElseThrow(() -> new IllegalArgumentException("From user not found"));
             UserEntity toUser = userRepository.findById(toUid).orElseThrow(() -> new IllegalArgumentException("To user not found"));
 
+        /*
+         * Payment gateway integration stub:
+         * - This is the point to initiate a real payment (e.g., Stripe, Razorpay, PayPal).
+         * - Example flow (sync):
+         *   paymentGateway.charge(fromUid, toUid, request.getAmount(), expense.getCurrency());
+         * - Example flow (async):
+         *   1) Create a payment intent/session and return client secrets to caller
+         *   2) On webhook/callback, verify signature and then call this settle flow
+         * - Make sure to implement idempotency (e.g., using a payment reference key) to avoid double charges.
+         */
+
             // decrease split owed for fromUser for this expense
             Optional<ExpenseSplitEntity> splitOpt = Optional.ofNullable(splitRepository.findByExpenseIdAndUserId(expId, fromUid));
             if (splitOpt.isEmpty()) throw new IllegalArgumentException("Split not found for user on expense");
@@ -99,6 +110,18 @@ public class SettlementServiceImpl implements SettlementService {
             settlement.setToUserId(toUid);
             settlement.setAmount(settleAmount);
             settlementRepository.save(settlement);
+
+            /*
+             * Payment gateway integration stub (post-settlement):
+             * - If We gateway returns a transactionId/chargeId, persist it here (extend SettlementEntity accordingly).
+             * - We can also emit an event to a notifications/payments topic for reconciliation:
+             *   eventPublisher.publish("shareware.payments.events", "PAYMENT_CAPTURED", Map.of(
+             *       "expenseId", expenseId,
+             *       "fromUserId", request.getFromUserId(),
+             *       "toUserId", request.getToUserId(),
+             *       "amount", settleAmount
+             *   ));
+             */
 
             Map<String, Object> payload = new HashMap<>();
             payload.put("expenseId", expenseId);

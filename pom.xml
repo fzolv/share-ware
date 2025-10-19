@@ -17,11 +17,6 @@
 		<module>data</module>
 		<module>server</module>
 		<module>consumer</module>
-		<module>user-service</module>
-		<module>group-service</module>
-		<module>expense-service</module>
-		<module>balance-service</module>
-		<module>iam-service</module>
 		<module>hull</module>
 		<module>bus</module>
 	</modules>
