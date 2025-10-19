@@ -5,6 +5,7 @@ Expense tracking, Tab organizing and group sharing calculation application.
 
 ## Bootstrap Instructions
 - Add the google client and google secret you got in the mail in the application.yml file under hull module
+- Add your user email for direct admin user bootstrapping to field bootstrap.admin.emails
 - Add the pem certificates under hull/src/main/resources/credentials/
 - Run the run-share-ware-main script on terminal
 
