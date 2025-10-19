@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: shareware-hull
+    index: ${random.uuid}
+  jmx:
+    enabled: false
+
+  datasource:
+    url: jdbc:h2:file:./persistence/shareware;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: pa
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  jpa:
+    database: H2
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        hbm2ddl:
+          auto: update
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:
+            client-secret:
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            user-name-attribute: sub
+
+server:
+  port: 8080
+  servlet:
+    context-path: /shareware
+
+logging:
+  file:
+    name: ./logs/shareware.log
+
+allowed:
+  origins: http://localhost:8080
+
+user-service:
+  url: http://localhost:8080/shareware/api/v1/users
+
+bootstrap:
+  admin:
+    emails: [ "maldarfaiz17@gmail.com" ]
+
+shareware:
+  locks:
+    provider: in-memory # options: in-memory, database, distributed

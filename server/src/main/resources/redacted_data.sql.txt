@@ -1,0 +1,128 @@
+CREATE DATABASE `shareware_db` IF NOT EXISTS;
+
+USE `shareware_db`;
+
+-- ========================
+-- 1. USER TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS `users` (
+    user_id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================
+-- 2. GROUP TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS groups (
+    group_id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(user_id)
+);
+
+-- ========================
+-- 3. GROUP MEMBER TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS group_members (
+    group_member_id UUID PRIMARY KEY,
+    group_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    role VARCHAR(20) DEFAULT 'member', -- could be 'member' or 'admin'
+    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE (group_id, user_id)
+);
+
+-- ========================
+-- 4. EXPENSE TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS expenses (
+    expense_id UUID PRIMARY KEY,
+    group_id UUID,
+    description VARCHAR(255) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    paid_by UUID NOT NULL,
+    currency VARCHAR(10) DEFAULT 'INR',
+    split_type VARCHAR(20) DEFAULT 'equal', -- equal/exact/percentage/shares
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE SET NULL,
+    FOREIGN KEY (paid_by) REFERENCES users(user_id)
+);
+
+-- ========================
+-- 5. EXPENSE SPLIT TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS expense_splits (
+    split_id UUID PRIMARY KEY,
+    expense_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    amount_owed DECIMAL(10,2) NOT NULL,
+    percentage DECIMAL(5,2),
+    FOREIGN KEY (expense_id) REFERENCES expenses(expense_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- ========================
+-- 6. BALANCE TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS balances (
+    balance_id UUID PRIMARY KEY,
+    group_id UUID,
+    from_user_id UUID NOT NULL,
+    to_user_id UUID NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE SET NULL,
+    FOREIGN KEY (from_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (to_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE (group_id, from_user_id, to_user_id)
+);
+
+-- ========================
+-- 7. SETTLEMENT TABLE
+-- ========================
+CREATE TABLE IF NOT EXISTS settlements (
+    settlement_id UUID PRIMARY KEY,
+    from_user_id UUID NOT NULL,
+    to_user_id UUID NOT NULL,
+    group_id UUID,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(20) DEFAULT 'cash', -- cash/upi/card/other
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (from_user_id) REFERENCES users(user_id),
+    FOREIGN KEY (to_user_id) REFERENCES users(user_id),
+    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE SET NULL
+);
+
+-- ========================
+-- 8. OPTIONAL: EXPENSE COMMENTS
+-- ========================
+CREATE TABLE IF NOT EXISTS expense_comments (
+    comment_id UUID PRIMARY KEY,
+    expense_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    comment_text VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (expense_id) REFERENCES expenses(expense_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- ========================
+-- 9. OPTIONAL: ATTACHMENTS (RECEIPTS)
+-- ========================
+CREATE TABLE IF NOT EXISTS expense_attachments (
+    attachment_id UUID PRIMARY KEY,
+    expense_id UUID NOT NULL,
+    file_url VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (expense_id) REFERENCES expenses(expense_id) ON DELETE CASCADE
+);
+
+
+

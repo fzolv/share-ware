@@ -1,0 +1,11 @@
+shareware:
+  bus:
+    provider: kafka # kafka or rabbit
+    kafka-bootstrap-servers: localhost:9092
+    kafka-client-id: shareware-client
+    rabbit-host: localhost
+    rabbit-port: 5672
+    rabbit-username: guest
+    rabbit-password: guest
+
+
