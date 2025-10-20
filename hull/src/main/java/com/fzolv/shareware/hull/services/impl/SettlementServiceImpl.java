@@ -1,29 +1,17 @@
 package com.fzolv.shareware.hull.services.impl;
 
-import com.fzolv.shareware.data.entities.BalanceEntity;
-import com.fzolv.shareware.data.entities.ExpenseEntity;
-import com.fzolv.shareware.data.entities.ExpenseSplitEntity;
-import com.fzolv.shareware.data.entities.UserEntity;
-import com.fzolv.shareware.data.repositories.BalanceRepository;
-import com.fzolv.shareware.data.repositories.ExpenseRepository;
-import com.fzolv.shareware.data.repositories.ExpenseSplitRepository;
-import com.fzolv.shareware.data.repositories.UserRepository;
-import com.fzolv.shareware.data.repositories.SettlementRepository;
-import com.fzolv.shareware.data.entities.SettlementEntity;
+import com.fzolv.shareware.core.exceptions.BadRequestException;
+import com.fzolv.shareware.data.entities.*;
+import com.fzolv.shareware.data.repositories.*;
+import com.fzolv.shareware.hull.events.EventPublisher;
 import com.fzolv.shareware.hull.locks.LockManager;
 import com.fzolv.shareware.hull.models.requests.SettlementRequest;
 import com.fzolv.shareware.hull.services.SettlementService;
-import com.fzolv.shareware.hull.events.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -45,30 +33,30 @@ public class SettlementServiceImpl implements SettlementService {
         try {
             UUID expId = UUID.fromString(expenseId);
             Optional<ExpenseEntity> expOpt = expenseRepository.findById(expId);
-            if (expOpt.isEmpty()) throw new IllegalArgumentException("Expense not found: " + expenseId);
+            if (expOpt.isEmpty()) throw new BadRequestException("Expense not found: " + expenseId);
             ExpenseEntity expense = expOpt.get();
 
             UUID fromUid = UUID.fromString(request.getFromUserId());
             UUID toUid = UUID.fromString(request.getToUserId());
 
             // ensure users exist
-            UserEntity fromUser = userRepository.findById(fromUid).orElseThrow(() -> new IllegalArgumentException("From user not found"));
-            UserEntity toUser = userRepository.findById(toUid).orElseThrow(() -> new IllegalArgumentException("To user not found"));
+            UserEntity fromUser = userRepository.findById(fromUid).orElseThrow(() -> new BadRequestException("From user not found"));
+            UserEntity toUser = userRepository.findById(toUid).orElseThrow(() -> new BadRequestException("To user not found"));
 
-        /*
-         * Payment gateway integration stub:
-         * - This is the point to initiate a real payment (e.g., Stripe, Razorpay, PayPal).
-         * - Example flow (sync):
-         *   paymentGateway.charge(fromUid, toUid, request.getAmount(), expense.getCurrency());
-         * - Example flow (async):
-         *   1) Create a payment intent/session and return client secrets to caller
-         *   2) On webhook/callback, verify signature and then call this settle flow
-         * - Make sure to implement idempotency (e.g., using a payment reference key) to avoid double charges.
-         */
+            /*
+             * Payment gateway integration stub:
+             * - This is the point to initiate a real payment (e.g., Stripe, Razorpay, PayPal).
+             * - Example flow (sync):
+             *   paymentGateway.charge(fromUid, toUid, request.getAmount(), expense.getCurrency());
+             * - Example flow (async):
+             *   1) Create a payment intent/session and return client secrets to caller
+             *   2) On webhook/callback, verify signature and then call this settle flow
+             * - Make sure to implement idempotency (e.g., using a payment reference key) to avoid double charges.
+             */
 
             // decrease split owed for fromUser for this expense
             Optional<ExpenseSplitEntity> splitOpt = Optional.ofNullable(splitRepository.findByExpenseIdAndUserId(expId, fromUid));
-            if (splitOpt.isEmpty()) throw new IllegalArgumentException("Split not found for user on expense");
+            if (splitOpt.isEmpty()) throw new BadRequestException("Split not found for user on expense");
             ExpenseSplitEntity split = splitOpt.get();
             double owed = split.getAmountOwed();
             double settleAmount = Math.min(owed, request.getAmount());

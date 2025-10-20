@@ -1,5 +1,6 @@
 package com.fzolv.shareware.hull.strategy.impl;
 
+import com.fzolv.shareware.core.exceptions.BadRequestException;
 import com.fzolv.shareware.data.entities.ExpenseEntity;
 import com.fzolv.shareware.data.entities.ExpenseSplitEntity;
 import com.fzolv.shareware.data.entities.UserEntity;
@@ -9,11 +10,7 @@ import com.fzolv.shareware.hull.strategy.ExpenseSplitStrategy;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 public class ExactSplitStrategy implements ExpenseSplitStrategy {
@@ -21,7 +18,7 @@ public class ExactSplitStrategy implements ExpenseSplitStrategy {
     @Override
     public List<ExpenseSplitEntity> calculateSplits(ExpenseEntity expense, List<ExpenseRequest.SplitRequest> splitRequests, UserRepository userRepository) {
         if (splitRequests == null || splitRequests.isEmpty()) {
-            throw new IllegalArgumentException("Exact split requires explicit split requests with amounts");
+            throw new BadRequestException("Exact split requires explicit split requests with amounts");
         }
 
         // Validate all users are members of the expense group
@@ -32,11 +29,11 @@ public class ExactSplitStrategy implements ExpenseSplitStrategy {
         List<ExpenseSplitEntity> splits = new ArrayList<>();
         for (ExpenseRequest.SplitRequest s : splitRequests) {
             if (s.getAmount() == null) {
-                throw new IllegalArgumentException("Exact split requires amount for user: " + s.getUserId());
+                throw new BadRequestException("Exact split requires amount for user: " + s.getUserId());
             }
             UUID uid = UUID.fromString(s.getUserId());
             if (!groupUserIds.contains(uid)) {
-                throw new IllegalArgumentException("User " + s.getUserId() + " is not a member of the group");
+                throw new BadRequestException("User " + s.getUserId() + " is not a member of the group");
             }
             sum += s.getAmount();
             UserEntity user = userRepository.findById(uid)
@@ -51,7 +48,7 @@ public class ExactSplitStrategy implements ExpenseSplitStrategy {
 
         double total = round2(expense.getAmount());
         if (Math.abs(round2(sum) - total) > 0.01) {
-            throw new IllegalArgumentException("Exact split amounts (" + sum + ") must equal expense total (" + total + ")");
+            throw new BadRequestException("Exact split amounts (" + sum + ") must equal expense total (" + total + ")");
         }
         return splits;
     }

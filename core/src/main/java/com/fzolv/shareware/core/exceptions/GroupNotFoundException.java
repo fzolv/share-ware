@@ -1,4 +1,4 @@
-package com.fzolv.shareware.core.exception;
+package com.fzolv.shareware.core.exceptions;
 
 public class GroupNotFoundException extends ApiException {
     public GroupNotFoundException(String groupId) {

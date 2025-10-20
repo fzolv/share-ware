@@ -19,22 +19,61 @@ public class BusProperties {
     private String rabbitUsername = "guest";
     private String rabbitPassword = "guest";
 
-    public String getProvider() { return provider; }
-    public void setProvider(String provider) { this.provider = provider; }
+    public String getProvider() {
+        return provider;
+    }
 
-    public String getKafkaBootstrapServers() { return kafkaBootstrapServers; }
-    public void setKafkaBootstrapServers(String kafkaBootstrapServers) { this.kafkaBootstrapServers = kafkaBootstrapServers; }
-    public String getKafkaClientId() { return kafkaClientId; }
-    public void setKafkaClientId(String kafkaClientId) { this.kafkaClientId = kafkaClientId; }
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
 
-    public String getRabbitHost() { return rabbitHost; }
-    public void setRabbitHost(String rabbitHost) { this.rabbitHost = rabbitHost; }
-    public int getRabbitPort() { return rabbitPort; }
-    public void setRabbitPort(int rabbitPort) { this.rabbitPort = rabbitPort; }
-    public String getRabbitUsername() { return rabbitUsername; }
-    public void setRabbitUsername(String rabbitUsername) { this.rabbitUsername = rabbitUsername; }
-    public String getRabbitPassword() { return rabbitPassword; }
-    public void setRabbitPassword(String rabbitPassword) { this.rabbitPassword = rabbitPassword; }
+    public String getKafkaBootstrapServers() {
+        return kafkaBootstrapServers;
+    }
+
+    public void setKafkaBootstrapServers(String kafkaBootstrapServers) {
+        this.kafkaBootstrapServers = kafkaBootstrapServers;
+    }
+
+    public String getKafkaClientId() {
+        return kafkaClientId;
+    }
+
+    public void setKafkaClientId(String kafkaClientId) {
+        this.kafkaClientId = kafkaClientId;
+    }
+
+    public String getRabbitHost() {
+        return rabbitHost;
+    }
+
+    public void setRabbitHost(String rabbitHost) {
+        this.rabbitHost = rabbitHost;
+    }
+
+    public int getRabbitPort() {
+        return rabbitPort;
+    }
+
+    public void setRabbitPort(int rabbitPort) {
+        this.rabbitPort = rabbitPort;
+    }
+
+    public String getRabbitUsername() {
+        return rabbitUsername;
+    }
+
+    public void setRabbitUsername(String rabbitUsername) {
+        this.rabbitUsername = rabbitUsername;
+    }
+
+    public String getRabbitPassword() {
+        return rabbitPassword;
+    }
+
+    public void setRabbitPassword(String rabbitPassword) {
+        this.rabbitPassword = rabbitPassword;
+    }
 }
 
 

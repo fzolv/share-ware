@@ -1,5 +1,6 @@
 package com.fzolv.shareware.hull.strategy.impl;
 
+import com.fzolv.shareware.core.exceptions.BadRequestException;
 import com.fzolv.shareware.data.entities.ExpenseEntity;
 import com.fzolv.shareware.data.entities.ExpenseSplitEntity;
 import com.fzolv.shareware.data.entities.UserEntity;
@@ -17,7 +18,7 @@ public class PercentageSplitStrategy implements ExpenseSplitStrategy {
     @Override
     public List<ExpenseSplitEntity> calculateSplits(ExpenseEntity expense, List<ExpenseRequest.SplitRequest> splitRequests, UserRepository userRepository) {
         if (splitRequests == null || splitRequests.isEmpty()) {
-            throw new IllegalArgumentException("Percentage splits require explicit splitRequests with percentages");
+            throw new BadRequestException("Percentage splits require explicit splitRequests with percentages");
         }
         // Validate all users are members of the expense group
         Set<UUID> groupUserIds = new HashSet<>();
@@ -27,7 +28,7 @@ public class PercentageSplitStrategy implements ExpenseSplitStrategy {
         for (ExpenseRequest.SplitRequest s : splitRequests) {
             UUID uid = UUID.fromString(s.getUserId());
             if (!groupUserIds.contains(uid)) {
-                throw new IllegalArgumentException("User " + s.getUserId() + " is not a member of the group");
+                throw new BadRequestException("User " + s.getUserId() + " is not a member of the group");
             }
             UserEntity user = userRepository.findById(uid)
                     .orElseThrow(() -> new EntityNotFoundException("User not found: " + s.getUserId()));

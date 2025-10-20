@@ -1,37 +1,29 @@
 package com.fzolv.shareware.hull.services.impl;
 
-import com.fzolv.shareware.data.entities.ExpenseEntity;
-import com.fzolv.shareware.data.entities.ExpenseSplitEntity;
-import com.fzolv.shareware.data.entities.GroupEntity;
-import com.fzolv.shareware.data.entities.SplitType;
-import com.fzolv.shareware.data.entities.UserEntity;
+import com.fzolv.shareware.data.entities.*;
 import com.fzolv.shareware.data.repositories.ExpenseRepository;
+import com.fzolv.shareware.data.repositories.GroupBalanceRepository;
 import com.fzolv.shareware.data.repositories.GroupRepository;
 import com.fzolv.shareware.data.repositories.UserRepository;
+import com.fzolv.shareware.hull.events.EventPublisher;
+import com.fzolv.shareware.hull.locks.LockManager;
 import com.fzolv.shareware.hull.mapper.ExpenseMapper;
 import com.fzolv.shareware.hull.models.dtos.ExpenseDto;
 import com.fzolv.shareware.hull.models.requests.ExpenseRequest;
 import com.fzolv.shareware.hull.services.ExpenseService;
 import com.fzolv.shareware.hull.strategy.ExpenseSplitStrategy;
 import com.fzolv.shareware.hull.strategy.impl.EqualSplitStrategy;
-import com.fzolv.shareware.hull.strategy.impl.ExactSplitStrategy;
-import com.fzolv.shareware.hull.events.EventPublisher;
+import com.fzolv.shareware.hull.strategy.impl.PercentageSplitStrategy;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.fzolv.shareware.hull.locks.LockManager;
-import jakarta.annotation.PostConstruct;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.UUID;
+import java.time.Month;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.EnumMap;
 
 @Service
 @RequiredArgsConstructor
@@ -45,16 +37,17 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final LockManager lockManager;
     private final List<ExpenseSplitStrategy> splitStrategyBeans;
     private final Map<SplitType, ExpenseSplitStrategy> strategyByType = new EnumMap<>(com.fzolv.shareware.data.entities.SplitType.class);
+    private final GroupBalanceRepository groupBalanceRepository;
 
     @PostConstruct
     void initSplitStrategies() {
         for (ExpenseSplitStrategy s : splitStrategyBeans) {
             if (s instanceof EqualSplitStrategy) {
-                strategyByType.put(com.fzolv.shareware.data.entities.SplitType.EQUAL, s);
-            } else if (s instanceof ExactSplitStrategy) {
-                strategyByType.put(com.fzolv.shareware.data.entities.SplitType.EXACT, s);
+                strategyByType.put(SplitType.EQUAL, s);
+            } else if (s.getClass().getSimpleName().equals("ExactSplitStrategy")) {
+                strategyByType.put(SplitType.EXACT, s);
             } else if (s instanceof PercentageSplitStrategy) {
-                strategyByType.put(com.fzolv.shareware.data.entities.SplitType.PERCENTAGE, s);
+                strategyByType.put(SplitType.PERCENTAGE, s);
             }
         }
     }
@@ -73,7 +66,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setAmount(request.getAmount());
         expense.setPaidBy(paidBy);
         expense.setCurrency(request.getCurrency());
-        expense.setSplitType(com.fzolv.shareware.data.entities.SplitType.valueOf(request.getSplitType()));
+        expense.setSplitType(SplitType.valueOf(request.getSplitType()));
         LocalDateTime now = LocalDateTime.now();
         expense.setCreatedAt(now);
         expense.setUpdatedAt(now);
@@ -115,7 +108,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             expense.setDescription(request.getDescription());
             expense.setAmount(request.getAmount());
             expense.setCurrency(request.getCurrency());
-            expense.setSplitType(com.fzolv.shareware.data.entities.SplitType.valueOf(request.getSplitType()));
+            expense.setSplitType(SplitType.valueOf(request.getSplitType()));
 
             // Recalculate splits
             ExpenseSplitStrategy strategy = resolveStrategy(expense.getSplitType());
@@ -125,6 +118,13 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             expense.setUpdatedAt(LocalDateTime.now());
             expense = expenseRepository.save(expense);
+
+            // Reset group balance calcAt to default
+            UUID gid = expense.getGroup().getId();
+            groupBalanceRepository.findByGroup_Id(gid).ifPresent(gb -> {
+                gb.setCalcAt(LocalDateTime.of(1961, Month.JANUARY, 1, 0, 0));
+                groupBalanceRepository.save(gb);
+            });
 
             Map<String, Object> payload = new HashMap<>();
             payload.put("expenseId", expense.getId().toString());
@@ -150,13 +150,20 @@ public class ExpenseServiceImpl implements ExpenseService {
         String lockKey = "expense:" + expenseId;
         lockManager.lock(lockKey);
         try {
-            if (!expenseRepository.existsById(UUID.fromString(expenseId))) {
-                throw new EntityNotFoundException("Expense not found");
-            }
-            expenseRepository.deleteById(UUID.fromString(expenseId));
+            ExpenseEntity expense = expenseRepository.findById(UUID.fromString(expenseId))
+                    .orElseThrow(() -> new EntityNotFoundException("Expense not found"));
+
+            UUID gid = expense.getGroup().getId();
+            expenseRepository.deleteById(expense.getId());
+
+            // Reset group balance calcAt to default
+            groupBalanceRepository.findByGroup_Id(gid).ifPresent(gb -> {
+                gb.setCalcAt(LocalDateTime.of(1961, Month.JANUARY, 1, 0, 0));
+                groupBalanceRepository.save(gb);
+            });
+
             Map<String, Object> payload = new HashMap<>();
             payload.put("expenseId", expenseId);
-            // for delete, we can include the group and payer if needed (look up optional)
             eventPublisher.publish("shareware.expense.events", "EXPENSE_DELETED", payload);
         } finally {
             lockManager.releaseLock(lockKey);
@@ -179,7 +186,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .collect(Collectors.toList());
     }
 
-    private ExpenseSplitStrategy resolveStrategy(com.fzolv.shareware.data.entities.SplitType splitType) {
+    private ExpenseSplitStrategy resolveStrategy(SplitType splitType) {
         ExpenseSplitStrategy strategy = strategyByType.get(splitType);
         if (strategy == null) {
             throw new UnsupportedOperationException("Split type not supported: " + splitType);

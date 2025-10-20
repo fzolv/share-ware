@@ -21,7 +21,6 @@ public class BalanceServiceImpl implements BalanceService {
 
     private final ExpenseSplitRepository splitRepository;
     private final ExpenseRepository expenseRepository;
-    private final BalanceRepository balanceRepository;
     private final SettlementRepository settlementRepository;
     private final LockManager lockManager;
     private final GroupBalanceRepository groupBalanceRepository;

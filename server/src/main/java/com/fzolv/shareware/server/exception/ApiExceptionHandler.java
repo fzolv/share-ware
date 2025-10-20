@@ -1,6 +1,6 @@
 package com.fzolv.shareware.server.exception;
 
-import com.fzolv.shareware.core.exception.ApiException;
+import com.fzolv.shareware.core.exceptions.ApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

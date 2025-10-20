@@ -1,4 +1,4 @@
-package com.fzolv.shareware.core.exception;
+package com.fzolv.shareware.core.exceptions;
 
 public class SettlementFailedException extends ApiException {
     public SettlementFailedException(String reason) {

@@ -1,5 +1,6 @@
 package com.fzolv.shareware.hull.services.impl;
 
+import com.fzolv.shareware.core.exceptions.ResourceAlreadyExistsException;
 import com.fzolv.shareware.core.models.dtos.UserDto;
 import com.fzolv.shareware.data.entities.GroupEntity;
 import com.fzolv.shareware.data.entities.GroupMemberEntity;
@@ -7,6 +8,7 @@ import com.fzolv.shareware.data.entities.GroupRole;
 import com.fzolv.shareware.data.entities.UserEntity;
 import com.fzolv.shareware.data.repositories.GroupMemberRepository;
 import com.fzolv.shareware.data.repositories.GroupRepository;
+import com.fzolv.shareware.hull.events.EventPublisher;
 import com.fzolv.shareware.hull.mapper.GroupMapper;
 import com.fzolv.shareware.hull.models.dtos.GroupDto;
 import com.fzolv.shareware.hull.models.dtos.GroupMemberDto;
@@ -14,7 +16,6 @@ import com.fzolv.shareware.hull.models.requests.GroupMemberRequest;
 import com.fzolv.shareware.hull.models.requests.GroupRequest;
 import com.fzolv.shareware.hull.services.GroupService;
 import com.fzolv.shareware.hull.services.UserService;
-import com.fzolv.shareware.hull.events.EventPublisher;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,12 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -173,7 +169,7 @@ public class GroupServiceImpl implements GroupService {
         if (memberRepository.findByGroupIdAndUserId(
                 UUID.fromString(groupId),
                 UUID.fromString(request.getUserId())).isPresent()) {
-            throw new IllegalStateException("User is already a member of this group");
+            throw new ResourceAlreadyExistsException("User is already a member of this group");
         }
 
         GroupMemberEntity member = new GroupMemberEntity();

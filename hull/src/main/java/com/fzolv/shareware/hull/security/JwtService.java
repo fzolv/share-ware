@@ -1,6 +1,7 @@
 package com.fzolv.shareware.hull.security;
 
 import com.fzolv.shareware.core.annotations.NoLogging;
+import com.fzolv.shareware.core.exceptions.BadRequestException;
 import com.fzolv.shareware.data.entities.UserEntity;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -64,7 +65,7 @@ public class JwtService {
             }
             return jwt.getJWTClaimsSet().getClaims();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid token", e);
+            throw new BadRequestException("Invalid token");
         }
     }
 }
