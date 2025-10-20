@@ -38,6 +38,10 @@ Share-Ware lets users create groups, add expenses, settle balances, and compute 
   - Whenever user logs in, the IAM service will issue a ID JWT token
   - This ID token will be exchanged for access tokens for other services
   - Access Request will have the resource entity required and IAM service will resolve the effective role for that resource
+- Core
+  - An Auth module that will have the common authentication and authorization logic
+  - It will do the static verification of JWT tokens for scalability and quick access
+  - It will be used by all services to validate the incoming requests and provide inhouse resource-based authorization logic
 - User Service
   - This will have the user entities and user management APIs
   - This will be using RDBMS with master/slave setup for high availability
