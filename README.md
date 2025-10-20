@@ -2,12 +2,23 @@
 
 Expense tracking, Tab organizing and group sharing calculation application.
 
+## Required Installations
+- Java 21
+- Maven 3.9.11
+- Install the dependencies and update the environment variables to the versions recommended above
 
 ## Bootstrap Instructions
 - Add the google client and google secret you got in the mail in the application.yml file under hull module
 - Add your user email for direct admin user bootstrapping to field bootstrap.admin.emails
 - Add the pem certificates under hull/src/main/resources/credentials/
 - Run the run-share-ware-main script on terminal
+
+## Running Instructions
+- We are using h2 database for ease of testing and demo purpose. Please use http://localhost:8080/shareware/h2-console to access the database console
+- For obtaining jwt for running shareware apis. Visit http://localhost:8080/shareware/oauth2/authorization/google to login via google oauth2
+- The token will be returned in the response
+- Use the token in Authorization header as Bearer token to access other apis
+- You can use the admin issue token api to generate tokens for other users
 
 
 ## Overview
