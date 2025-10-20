@@ -2,11 +2,9 @@
 
 Expense tracking, Tab organizing and group sharing calculation application.
 
+# Note
 
-## Bootstrap Instructions
-Add the google client and google secret you got in the mail in the application.yml file under hull module
-Add the pem certificates under hull/src/main/resources/credentials/
-Run the run-share-ware-main script on terminal
+This branch is non-functional and provided for illustrative purposes only. It may contain incomplete features, placeholders, or mock implementations. It is not intended to be evaluated
 
 
 ## Overview
@@ -17,8 +15,47 @@ Share-Ware lets users create groups, add expenses, settle balances, and compute 
 
 - data: JPA entities and repositories
 - core: shared models/exceptions
-- hull: main HTTP API (Spring Boot), security, services, orchestration
 - bus: pluggable messaging providers (Kafka, RabbitMQ)
+- iam-service: user and access management (membership management) 
+- user-service: user CRUD API
+- group-service: group CRUD API
+- expense-service: expense CRUD and settlement
+- balance-service: balance computation and retrieval
+- notification-service: event-driven notifications (placeholder)
+- payment-service: payment processing (placeholder)
+
+## Design Ideology
+- Modular architecture with clear separation of concerns
+- Domain Driven Design ensuring rich domain models
+- Low coupling and high cohesion among services
+- This design ensures scalability, maintainability, and extensibility
+- This will also be stateless and container-friendly for cloud deployments
+- IAM Service
+  - Manages the authentication and authorization aspects
+  - It will house the user roles and permissions
+  - It will also have user-group and user-expense relationships
+  - It will generate and validate JWT tokens
+  - Whenever user logs in, the IAM service will issue a ID JWT token
+  - This ID token will be exchanged for access tokens for other services
+  - Access Request will have the resource entity required and IAM service will resolve the effective role for that resource
+- User Service
+  - This will have the user entities and user management APIs
+  - This will be using RDBMS with master/slave setup for high availability
+- Group Service
+  - This will have the group entites and group management APIs
+  - This will be using RDBMS with master/slave setup for high availability
+- Expense Service
+  - This will have the expense entities and expense management APIs
+  - This will be using RDBMS with master/slave setup for high availability
+- Balance Service
+  - This will have balance computation logic and APIs
+- Notification Service
+  - This will integrate with external notification systems (email, SMS, push)
+- Payment Service
+  - This will integrate with external payment gateways (Stripe, PayPal)
+- Pluggable components for locking and messaging
+- Resource-based authorization for fine-grained access control
+- Event-driven design for extensibility and integrations
 
 ## Key Entities (data module)
 
